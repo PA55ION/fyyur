@@ -21,7 +21,7 @@ def upgrade():
     op.create_table('show',
     sa.Column('venue_id', sa.Integer(), nullable=False),
     sa.Column('artist_id', sa.Integer(), nullable=False),
-    sa.Column('start_time', sa.DateTime(), nullable=False),
+    sa.Column('start_time', sa.String(), nullable=False),
     sa.ForeignKeyConstraint(['artist_id'], ['artist.id'], ),
     sa.ForeignKeyConstraint(['venue_id'], ['venue.id'], ),
     sa.PrimaryKeyConstraint('venue_id', 'artist_id')

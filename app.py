@@ -120,37 +120,39 @@ def index():
 
 @app.route('/venues')
 def venues():
-  date = datetime.utcnow()
-  data = []
-  venue_cities = Venue.query.with_entities(Venue.city, Venue.state, Venue.name, Venue.id).all()
-  venue_state = Venue.query.with_entities(Venue.state).all()
-  venue_name = Venue.query.with_entities(Venue.id, Venue.name).all()
-  for area in venue_cities:
-    venue_area = Venue.query.filter_by(city=area.city).filter_by(state=area.state).filter_by(name=area.name).filter_by(id=area.id).all()
-    venue_detail = []
-    for venue in venue_area:
-      venue_detail.append({
-        'id': venue.id,
-        'name': venue.name,
-        'num_upcoming_show': db.session.query(Show).filter(Show.venue_id == venue.id).filter(Show.start_time > date).count()
-      })
-      cities = [city[0] for city in venue_cities]
-      states = [state[0] for state in venue_state]
-      data.append({
-        'city': cities,
-        'state': states,
-        'venues': venue_name
-        # 'venues': Venue.query.with_entities(Venue.name).all()
-      })
-      return render_template('pages/venues.html', areas=data)
+
+    # FIXME only return 1 result
+    date = datetime.utcnow()
+    data = []
+    venue_cities = Venue.query.with_entities(
+        Venue.city, Venue.state).distinct().all()
+    venue_name = Venue.query.with_entities(Venue.id, Venue.name).all()
+    for area in venue_cities:
+        venue_area = Venue.query.filter_by(
+            city=area.city).filter_by(state=area.state).all()
+        venue_detail = []
+        for venue in venue_area:
+            venue_detail.append({
+                'id': venue.id,
+                'name': venue.name,
+                'num_upcoming_show': db.session.query(Show).filter(Show.venue_id == venue.id).filter(Show.start_time > date).count()
+            })
+            data.append({
+                'city': area.city,
+                'state': area.state,
+                'venues': venue_name
+            })
+            return render_template('pages/venues.html', areas=data)
+
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
-    # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
+    # DONE: implement search on artists with partial string search. Ensure it is case-insensitive.
     # search for Hop should return "The Musical Hop".
     # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
-    search =  request.form.get('search_term', '')
-    search_results = Venue.query.with_entities(Venue.id, Venue.name).filter(Venue.name.ilike('%' + search + '%')).all()
+    search = request.form.get('search_term', '')
+    search_results = Venue.query.with_entities(Venue.id, Venue.name).filter(
+        Venue.name.ilike('%' + search + '%')).all()
     response = {'data': search_results, 'count': len(search_results)}
     return render_template('pages/search_venues.html', results=response, search_term=search)
 
@@ -158,7 +160,55 @@ def search_venues():
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
     # shows the venue page with the given venue_id
-    # TODO: replace with real venue data from the venues table, using venue_id
+    # DONE replace with real venue data from the venues table, using venue_id
+    # FIXME genres return in alphabet formatt
+    # upcoming_shows = []
+    # past_shows = []
+    # venue = Venue.query.get(venue_id)
+    # today = datetime.utcnow()
+
+    # past_show_data = db.session.query(Artist.id, Artist.name, Artist.image_link, Show.start_time)\
+    #   .join(Show, Artist.id == Show.artist_id)\
+    #     .filter(Show.venue_id == venue_id).filter(Show.start_time > today).all()
+
+    # upcoming_show_data = db.session.query(Artist.id, Artist.name, Artist.image_link, Show.start_time)\
+    #   .join(Show, Artist.id == Show.artist_id)\
+    #     .filter(Show.venue_id == venue_id).filter(Show.start_time > today).all()
+
+    # for past_show in past_show_data:
+    #   past_shows.append({
+    #     'artist_id': past_show.id,
+    #     'artist_name': past_show.name,
+    #     'artist_image_link': past_show.image_link,
+    #     'start_time': past_show.start_time.strftime("%A %B, %d %Y %H:%I %p")
+    #   })
+    #   for upcoming_show in upcoming_show_data:
+    #     upcoming_shows.append({
+    #       'artist_id': upcoming_show.id,
+    #       'artist_name': upcoming_show.name,
+    #       'artist_image_link': upcoming_show.image_link,
+    #       'start_time': upcoming_show.start_time.strftime("%A %B, %d %Y %H:%I %p")
+    #     })
+
+    # data = {
+    #     'id': venue.id,
+    #     'name': venue.name,
+    #     'genres': venue.genres.split(','),
+    #     'address': venue.address,
+    #     'city': venue.city,
+    #     'state': venue.state,
+    #     'phone': venue.phone,
+    #     'website': venue.website,
+    #     'facebook_link': venue.facebook_link,
+    #     'seeking_talent': venue.seeking_talent,
+    #     'seeking_description': venue.seeking_description,
+    #     'image_link': venue.image_link,
+    #     'past_shows': past_shows,
+    #     'upcoming_shows': upcoming_shows,
+    #     'past_shows_count': len(past_shows),
+    #     'upcoming_shows_count': len(upcoming_shows)
+    # }
+    # return render_template('pages/show_venue.html', venue=data)
     data1 = {
         "id": 1,
         "name": "The Musical Hop",
@@ -252,15 +302,36 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-    # TODO: insert form data as a new Venue record in the db, instead
-    # TODO: modify data to be the data object returned from db insertion
-
+    # DONE insert form data as a new Venue record in the db, instead
+    # DONE modify data to be the data object returned from db insertion
+    error = False
+    name = request.form['name']
+    city = request.form['city']
+    state = request.form['state']
+    address = request.form['address']
+    phone = request.form['phone']
+    genres = request.form['genres']
+    facebook_link = request.form['facebook_link']
+    try:
+        new_venue = Venue(name=name, city=city, address=address, state=state,
+                          phone=phone, genres=genres, facebook_link=facebook_link)
+        db.session.add(new_venue)
+        db.session.commit()
     # on successful db insert, flash success
-    flash('Venue ' + request.form['name'] + ' was successfully listed!')
-    # TODO: on unsuccessful db insert, flash an error instead.
-    # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
-    # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
-    return render_template('pages/home.html')
+        flash('Venue ' + request.form['name'] + ' was successfully listed!')
+    # DONE: on unsuccessful db insert, flash an error instead.
+    except:
+        db.session.rollback()
+        error = True
+        print(sys.exc_info())
+        flash('An error occurred. Venue ' +
+              data.name + ' could not be listed.')
+    finally:
+        db.session.close()
+        if error:
+            abort()
+        else:
+            return redirect(url_for('venues'))
 
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
@@ -278,34 +349,20 @@ def delete_venue(venue_id):
 
 @app.route('/artists')
 def artists():
-    # TODO: replace with real data returned from querying the database
-    data = [{
-        "id": 4,
-        "name": "Guns N Petals",
-    }, {
-        "id": 5,
-        "name": "Matt Quevedo",
-    }, {
-        "id": 6,
-        "name": "The Wild Sax Band",
-    }]
-    return render_template('pages/artists.html', artists=data)
+    # DONE: replace with real data returned from querying the database
+    return render_template('pages/artists.html', artists=Artist.query.with_entities(Artist.id, Artist.name).order_by('id').all())
 
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
-    # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
+    # DONE: implement search on artists with partial string search. Ensure it is case-insensitive.
     # search for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
     # search for "band" should return "The Wild Sax Band".
-    response = {
-        "count": 1,
-        "data": [{
-            "id": 4,
-            "name": "Guns N Petals",
-            "num_upcoming_shows": 0,
-        }]
-    }
-    return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
+    search = request.form.get('search_term', '')
+    search_result = Artist.query.with_entities(Artist.id, Artist.name).filter(
+        Artist.name.ilike('%' + search + '%')).all()
+    response = {'count': len(search_result), 'data': search_result}
+    return render_template('pages/search_artists.html', results=response, search_term=search)
 
 
 @app.route('/artists/<int:artist_id>')
@@ -313,7 +370,7 @@ def show_artist(artist_id):
     # shows the venue page with the given venue_id
     # TODO: replace with real venue data from the venues table, using venue_id
     data1 = {
-        "id": 4,
+        "id": 1,
         "name": "Guns N Petals",
         "genres": ["Rock n Roll"],
         "city": "San Francisco",
@@ -335,7 +392,7 @@ def show_artist(artist_id):
         "upcoming_shows_count": 0,
     }
     data2 = {
-        "id": 5,
+        "id": 2,
         "name": "Matt Quevedo",
         "genres": ["Jazz"],
         "city": "New York",
@@ -355,7 +412,7 @@ def show_artist(artist_id):
         "upcoming_shows_count": 0,
     }
     data3 = {
-        "id": 6,
+        "id": 3,
         "name": "The Wild Sax Band",
         "genres": ["Jazz", "Classical"],
         "city": "San Francisco",
