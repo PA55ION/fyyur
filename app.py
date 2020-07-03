@@ -13,6 +13,7 @@ import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
+import sys
 
 #----------------------------------------------------------------------------#
 # App Config.
@@ -230,26 +231,23 @@ def create_venue_submission():
     phone = request.form['phone']
     genres = request.form['genres']
     facebook_link = request.form['facebook_link']
+    website = request.form['website']
+    image_link = request.form['image_link']
     try:
         new_venue = Venue(name=name, city=city, address=address, state=state,
-                          phone=phone, genres=genres, facebook_link=facebook_link)
+                          phone=phone, genres=genres, facebook_link=facebook_link, website=website, image_link=image_link)
         db.session.add(new_venue)
         db.session.commit()
     # on successful db insert, flash success
         flash('Venue ' + request.form['name'] + ' was successfully listed!')
-    # DONE: on unsuccessful db insert, flash an error instead.
     except:
         db.session.rollback()
         error = True
         print(sys.exc_info())
-        flash('An error occurred. Venue ' +
-              data.name + ' could not be listed.')
+        flash('An error occurred. Venue ' + name + ' could not be listed.')
     finally:
         db.session.close()
-        if error:
-            abort()
-        else:
-            return redirect(url_for('venues'))
+        return redirect(url_for('venues'))
 
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
@@ -271,9 +269,10 @@ def delete_venue(venue_id):
         flash('Oh ho something went wrong. Please try again later')
     finally:
         db.session.close()
-        return jsonify({'success': True})
+        return jsonify({ 'success': True})
+        # return redirect(url_for('index'))
         
-    # return render_template('page/home.html')
+   
 
 #  Artists
 #  ----------------------------------------------------------------
@@ -374,7 +373,7 @@ def edit_artist(artist_id):
     #     "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
     #     "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60"
     # }
-    return render_template('forms/edit_artist.html', form=form, artist=artist_id)
+    return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
@@ -392,10 +391,13 @@ def edit_artist_submission(artist_id):
          artist.genres = request.form['genres']
          artist.website = request.form['website']
          artist.facebook_link = request.form['facebook_link']
+         artist.image_link = request.form['image_link']
          db.session.add(artist)
          db.session.commit()
+         flash('Artist ' + request.form['name'] + 'successfully updated')
     except:
         db.session.rollback()
+        flash('Artist ' + request.form['name'] + ' cannot be updated!')
     finally:
         db.session.close()
         return redirect(url_for('show_artist', artist_id=artist_id))
