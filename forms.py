@@ -120,7 +120,7 @@ class VenueForm(Form):
         'website'
     )
     seeking_talent = BooleanField(
-        'seeking_talent', default=False
+        'seeking_talent'
     ) 
     seeking_description = StringField(
         'seeking_description'
@@ -228,7 +228,7 @@ class ArtistForm(Form):
         'website'
     )
     seeking_venue = BooleanField(
-    'seeking_talent', default = False
+    'seeking_talent'
     )
 
     seeking_description = StringField(

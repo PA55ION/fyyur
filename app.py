@@ -348,8 +348,8 @@ def edit_artist(artist_id):
     form.facebook_link.data = artist.facebook_link
     form.website.data = artist.website
     form.genres.data = request.form.getlist('genres')
-    # form.seeking_venue.data = artist.seeking_venue,
-    # form.seeking_description.data = artist.seeking_description
+    form.seeking_venue.data = artist.seeking_venue,
+    form.seeking_description.data = artist.seeking_description
     return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 
@@ -359,6 +359,8 @@ def edit_artist_submission(artist_id):
     # artist record with ID <artist_id> using the new attributes
     error = False
     artist = Artist.query.get(artist_id)
+    seeking_venue = True if request.form.get('seeking_venue') == 'y' else False
+    seeking_description = request.form['seeking_description'] if seeking_venue == True else None
     try:
          artist.name = request.form['name']
          artist.city = request.form['city']
@@ -368,8 +370,8 @@ def edit_artist_submission(artist_id):
          artist.website = request.form['website']
          artist.facebook_link = request.form['facebook_link']
          artist.image_link = request.form['image_link']
-        #  artist.seeking_venue = request.form['seeking_venue']
-        #  artist.seeking_description = request.form['seeking_description']
+         artist.seeking_venue = seeking_venue
+         artist.seeking_description = seeking_description
          print('Artist: ', artist)
          db.session.add(artist)
          db.session.commit()
@@ -394,8 +396,8 @@ def edit_venue(venue_id):
     form.phone.data = venue.phone
     form.genres.data = venue.genres
     form.facebook_link.data = venue.facebook_link
-    # form.seeking_description.data = venue.seeking_description
-    # form.seeking_talent.data = venue.seeking_talent
+    form.seeking_description.data = venue.seeking_description
+    form.seeking_talent.data = venue.seeking_talent
     form.image_link.data = venue.image_link
     form.website.data = venue.website
 
@@ -407,6 +409,8 @@ def edit_venue_submission(venue_id):
     # REVIEW take values from the form submitted, and update existing
     # venue record with ID <venue_id> using the new attributes
     venue = Venue.query.get(venue_id)
+    seeking_talent = True if request.form.get('seeking_talent') == 'y' else False
+    seeking_description = request.form['seeking_description'] if seeking_talent == True else None
     try:
         venue.name = request.form['name']
         venue.city = request.form['city']
@@ -416,8 +420,8 @@ def edit_venue_submission(venue_id):
         venue.address = request.form['address']
         venue.phone = request.form['phone']
         venue.facebook_link = request.form['facebook_link']
-        # venue.seeking_description = request.form['seeking_description']
-        # venue.seeking_talent = request.form['seeking_talent']
+        venue.seeking_description = seeking_description
+        venue.seeking_talent = seeking_talent
         venue.image_link = request.form['image_link']
         venue.website = request.form['website']
         
