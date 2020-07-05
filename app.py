@@ -260,6 +260,9 @@ def delete_venue(venue_id):
         db.session.close()
         return redirect(url_for('index'))
 
+
+
+
         
    
 
@@ -474,6 +477,20 @@ def create_artist_submission():
         db.session.close()
         return redirect(url_for('index'))
 
+@app.route('/artists/<artist_id>', methods=['DELETE'])
+def delete_artist(artist_id):
+    try:
+        artist = Artist.query.get(artist_id)
+        name = artist.name
+        db.session.delete(artist)
+        db.session.commit()
+        flash('Artist ' + name + ' successfully deleted!')
+    except:
+        db.session.rollback()
+        flash('Artist ' + name + 'could not be deleted at this time. Plese try again later')
+    finally:
+        db.session.close()
+        return redirect(url_for('index'))
 
 #  Shows
 #  ----------------------------------------------------------------

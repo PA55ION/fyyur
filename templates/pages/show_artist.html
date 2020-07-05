@@ -27,7 +27,9 @@
 			<i class="fab fa-facebook-f"></i> {% if artist.facebook_link %}<a href="{{ artist.facebook_link }}" target="_blank">{{ artist.facebook_link }}</a>{% else %}No Facebook Link{% endif %}
 		</p>
 		<div>
-            <button class='btn btn-primary btn-lg btn-sm' id="edit-venue" onclick="location.href='/artists/{{ artist.id }}/edit'">Edit</button>
+			<button class='btn btn-primary btn-lg btn-sm' id="edit-venue" onclick="location.href='/artists/{{ artist.id }}/edit'">Edit</button>
+			<button class='btn btn-danger btn-lg btn-sm' id="delete-artist-btn" data-id="{{ artist.id }}">Delete</button>
+
         </div>
 		{% if artist.seeking_venue %}
 		<div class="seeking">
@@ -74,6 +76,22 @@
 		{% endfor %}
 	</div>
 </section>
+<script>
+	const deleteArtist = document.getElementById('delete-artist-btn');
+	deleteArtist.onclick = function(e) {
+		const artistId = e.target.dataset['id'];
+		console.log('Delete button was click', artistId);
+		fetch(`/artists/${artistId}`, {
+			method: 'DELETE'
+		})
+		.then(function() {
+            window.location.href = '/artists';
+        })
+        .catch(function(e) {
+            console.log('error', e)
+        })
+	}
+</script>
 
 {% endblock %}
 
