@@ -123,7 +123,7 @@ def index():
 
 @app.route('/venues')
 def venues():
-    # DONE only return 1 result
+    # DONE return duplicated
     now = datetime.utcnow()
     data = []
     venue_location = Venue.query.with_entities(Venue.city, Venue.state).group_by(Venue.city, Venue.state).all()
@@ -137,14 +137,13 @@ def venues():
                 'name': venue.name,
                 'num_upcoming_show': db.session.query(Show).filter(Show.venue_id == venue.id).filter(Show.start_time < now).count()
             })
-            data.append({
-                'city': area.city,
-                'state': area.state,
-                'venues': venue_detail
-            })
-  
+        data.append({
+            'city': area.city,
+            'state': area.state,
+            'venues': venue_detail
+        })
     return render_template('pages/venues.html', areas=data)
-
+    
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
@@ -227,10 +226,11 @@ def create_venue_submission():
     facebook_link = request.form['facebook_link']
     website = request.form['website']
     image_link = request.form['image_link']
-    # seeking_description = request.form['seeking_description']
-    # seeking_talent = request.form['seeking_talent']
+    seeking_talent = True if request.form.get('seekign_description') == 'y' else False
+    seeking_description = request.form['seeking_description'] if seeking_talent == True else None
+    
     try:
-        new_venue = Venue(name=name, city=city, address=address,state=state, phone=phone, genres=genres, facebook_link=facebook_link, website=website, image_link=image_link)
+        new_venue = Venue(name=name, city=city, address=address,state=state, phone=phone, genres=genres, facebook_link=facebook_link, website=website, image_link=image_link, seeking_description=seeking_description, seeking_talent=seeking_talent)
         db.session.add(new_venue)
         db.session.commit()
     # on successful db insert, flash success
@@ -337,7 +337,7 @@ def show_artist(artist_id):
 
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
-    #DONE 
+    # DONE 
     form = ArtistForm()
     artist = Artist.query.get(artist_id)
     form.name.data = artist.name
@@ -386,7 +386,7 @@ def edit_artist_submission(artist_id):
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
-    #REVIEW the edit form need to add website, seeking_talent, seeking_description, image_link
+    # DONE the edit form need to add website, seeking_talent, seeking_description, image_link
     form = VenueForm()
     venue = Venue.query.get(venue_id)
     form.name.data = venue.name
@@ -406,7 +406,7 @@ def edit_venue(venue_id):
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
-    # REVIEW take values from the form submitted, and update existing
+    # DONE take values from the form submitted, and update existing
     # venue record with ID <venue_id> using the new attributes
     venue = Venue.query.get(venue_id)
     seeking_talent = True if request.form.get('seeking_talent') == 'y' else False
@@ -485,9 +485,8 @@ def shows():
     #       num_shows should be aggregated based on number of upcoming shows per venue.
     data = []
     now = datetime.utcnow()
-    shows = db.session.query(Show.venue_id, Show.artist_id, Show.start_time, Venue.name.label('venue_name'), Venue.id, Artist.name.label('artist_name'), Artist.id, Artist.image_link.label('artist_image_link'))\
-        .join(Artist, Artist.id == Show.artist_id)\
-          .join(Venue, Venue.id == Show.venue_id)
+    shows = db.session.query(Show.venue_id, Show.artist_id, Show.start_time, Venue.name.label('venue_name'), Artist.name.label('artist_name'), Artist.image_link.label('artist_image_link'))\
+        .join(Artist, Artist.id == Show.artist_id).join(Venue, Venue.id == Show.venue_id).all()
     
     for show in shows:
         data.append({
@@ -498,7 +497,9 @@ def shows():
             'artist_image_link': show.artist_image_link,
             'start_time': show.start_time.strftime("%A %B %d %Y %I:%M %p")
         })
-        return render_template('pages/shows.html', shows=data)
+    return render_template('pages/shows.html', shows=data)
+ 
+
 
 
 @app.route('/shows/create')
