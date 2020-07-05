@@ -43,6 +43,7 @@
 		{% endif %}
 		<div>
 			<button class='btn btn-primary btn-lg btn-sm' id="edit-venue" onclick="location.href='/venues/{{ venue.id }}/edit'">Edit</button>
+			<button data-id="{{ venue.id }}" class="delete-btn btn btn-danger btn-sm">Delete</button>
 		</div>
 	</div>
 	<div class="col-sm-6">
